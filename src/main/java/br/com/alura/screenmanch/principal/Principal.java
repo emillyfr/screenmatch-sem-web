@@ -1,20 +1,21 @@
 package br.com.alura.screenmanch.principal;
 
-import br.com.alura.screenmanch.model.DadosEpisodio;
-import br.com.alura.screenmanch.model.DadosSerie;
-import br.com.alura.screenmanch.model.DadosTemporadas;
-import br.com.alura.screenmanch.model.Episodio;
+import br.com.alura.screenmanch.model.*;
+import br.com.alura.screenmanch.repository.SerieRepository;
 import br.com.alura.screenmanch.service.ConsumoApi;
 import br.com.alura.screenmanch.service.ConverteDados;
 import ch.qos.logback.core.encoder.JsonEscapeUtil;
 import com.sun.source.util.SourcePositions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+
 
 import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 public class Principal {
     private Scanner leitura = new Scanner(System.in);
@@ -23,6 +24,13 @@ public class Principal {
     private final String API_KEY = "&apikey=fda65959";
     private ConverteDados conversor = new ConverteDados();
     private List<DadosSerie> dadosSerie = new ArrayList<>();
+
+    private final SerieRepository repositorio;
+
+    public Principal(SerieRepository repositorio) {
+        this.repositorio = repositorio;
+    }
+
 
     public void exibeMenu () {
         var opcao = -1;
@@ -59,7 +67,9 @@ public class Principal {
 
         private void buscaSerieWeb(){
             DadosSerie dados = getDadosSerie();
-            dadosSerie.add(dados);
+            Serie serie = new Serie(dados);
+            //dadosSerie.add(dados);
+            repositorio.save(serie);
             System.out.println(dados);
         }
 
@@ -85,7 +95,13 @@ public class Principal {
     }
 
     private void listarSeriesBuscadas(){
-        dadosSerie.forEach(System.out::println);
+        List<Serie> series =  repositorio.findAll();
+
+
+        series.stream().sorted(Comparator.comparing(Serie::getGenero))
+                        .forEach(System.out::println);
+
+
     }
 }
 
